@@ -1,0 +1,18 @@
+{
+    "name": "bonsai/crud",
+    "description": "CRUD",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "efmarroquinr"
+        }
+    ],
+    "require": {},
+    "autoload": {
+        "classmap": [
+        ],
+        "psr-4": {
+            "Csgt\\Crud\\": "src"
+        }
+    }
+}
