@@ -1,13 +1,15 @@
 {
     "name": "bonsai/crud",
-    "description": "CRUD",
+    "description": "Simple CRUD for Laravel 8",
     "license": "MIT",
     "authors": [
         {
             "name": "efmarroquinr"
         }
     ],
-    "require": {},
+    "require": {
+        "php" : ">=7.2"
+    },
     "autoload": {
         "classmap": [
         ],
