@@ -1,18 +1,14 @@
 <template>
-    <th
-        scope="col"
-        v-if="campo.tipo == 'checkbox' || campo.tipo == 'number'"
-        class="text-center"
-    >
-        {{ campo.titulo }}
+    <th scope="col" v-if="field.type == 'checkbox' || field.type == 'number'" class="text-center">
+        {{ field.title }}
     </th>
     <th scope="col" v-else>
-        {{ campo.titulo }}
+        {{ field.title }}
     </th>
 </template>
 
 <script>
 export default {
-    props: ["campo"],
+    props: ["field"],
 };
 </script>

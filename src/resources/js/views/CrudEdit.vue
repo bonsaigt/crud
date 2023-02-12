@@ -3,14 +3,9 @@
         <cargando v-if="cargando" />
         <div class="card" v-else>
             <div class="card-body">
-                <div class="mb-3" v-for="campo in campos" :key="campo.id">
-                    <template v-if="campo.editable">
-                        <crud-field
-                            :campo="campo"
-                            :dato="dato"
-                            :url="url"
-                            :static_url="static_url"
-                        />
+                <div class="mb-3" v-for="field in fields" :key="field.id">
+                    <template v-if="field.editable">
+                        <crud-field :field="field" :data="data" :url="url" :static_url="static_url" />
                     </template>
                 </div>
             </div>
@@ -18,9 +13,7 @@
                 <button class="btn btn-secondary" @click="regresar">
                     <i class="fas fa-chevron-left"></i> Regresar
                 </button>
-                <button class="btn btn-primary" @click="guardar">
-                    <i class="fas fa-save"></i> Guardar
-                </button>
+                <button class="btn btn-primary" @click="guardar"><i class="fas fa-save"></i> Guardar</button>
             </div>
         </div>
     </div>
@@ -33,8 +26,8 @@ export default {
         axios
             .get(this.url + "/" + this.id)
             .then((res) => {
-                this.campos = res.data.campos;
-                this.dato = res.data.dato;
+                this.fields = res.data.fields;
+                this.data = res.data.data;
                 this.cargando = false;
             })
             .catch((error) => {
@@ -44,8 +37,8 @@ export default {
     data() {
         return {
             cargando: true,
-            campos: [],
-            dato: [],
+            fields: [],
+            data: [],
         };
     },
     methods: {
@@ -55,7 +48,7 @@ export default {
         guardar() {
             axios
                 .put(this.url + "/" + this.id, {
-                    dato: this.dato,
+                    data: this.data,
                 })
                 .then((response) => {
                     window.location = this.url;

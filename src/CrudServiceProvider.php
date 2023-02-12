@@ -1,6 +1,7 @@
 <?php
 namespace Bonsai\Crud;
 
+use Bonsai\Crud\CrudController;
 use Illuminate\Support\ServiceProvider;
 
 class CrudServiceProvider extends ServiceProvider
@@ -12,7 +13,11 @@ class CrudServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->app->make('Bonsai\Crud\CrudController');
+        // $this->app->make('Bonsai\Crud\CrudController');
+        $this->app->singleton(CrudController::class, function () {
+            return new CrudController();
+        });
+
     }
 
     /**
@@ -22,10 +27,11 @@ class CrudServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        // dd('a');
         $this->loadViewsFrom(__DIR__ . '/resources/views/', 'bonsaicrud');
 
-        $this->publishes([
-            __DIR__ . '/resources/js/' => base_path('/resources/js/views/bonsaicrud'),
-        ], 'crud');
+        // $this->publishes([
+        //     __DIR__ . '/resources/js/' => base_path('/resources/js/views/bonsaicrud'),
+        // ], 'crud');
     }
 }

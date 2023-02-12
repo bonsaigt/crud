@@ -16,5 +16,12 @@
         "psr-4": {
             "Bonsai\\Crud\\": "src"
         }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Bonsai\\Crud\\CrudServiceProvider"
+            ]
+        }
     }
 }

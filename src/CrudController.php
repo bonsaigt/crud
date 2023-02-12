@@ -7,17 +7,26 @@ use Illuminate\Support\Facades\Hash;
 
 class CrudController extends Controller
 {
-    protected $campos     = [];
-    protected $modelo     = null;
-    protected $titulo     = '';
-    protected $columnas   = [];
+    // protected $campos     = [];
+    // protected $modelo     = null;
+    // protected $titulo     = '';
+    // protected $columnas   = [];
+    // protected $breadcrumb = [];
+    // protected $url        = '';
+    // protected $relaciones = [];
+    // protected $filesystem = 'null';
+    // protected $botones    = [];
+    protected $fields     = [];
+    protected $model      = null;
+    protected $title      = '';
+    protected $columns    = [];
     protected $breadcrumb = [];
     protected $url        = '';
-    protected $relaciones = [];
+    protected $relations  = [];
     protected $filesystem = 'null';
-    protected $botones    = [];
+    protected $buttons    = [];
 
-    private function set_campo($array)
+    private function set_field($array)
     {
         $tmp = $array;
 
@@ -25,74 +34,74 @@ class CrudController extends Controller
             $tmp['editable'] = true;
         }
 
-        if (!isset($array['tipo'])) {
-            $tmp['tipo'] = 'texto';
+        if (!isset($array['type'])) {
+            $tmp['type'] = 'texto';
         }
 
         if (!isset($array['visible'])) {
             $tmp['visible'] = true;
         }
 
-        if (isset($array['relacion'])) {
-            if (!in_array($array['relacion'], $this->relaciones)) {
-                $this->relaciones[] = $array['relacion'];
+        if (isset($array['relation'])) {
+            if (!in_array($array['relation'], $this->relations)) {
+                $this->relations[] = $array['relation'];
             }
         }
 
-        if ($tmp['tipo'] == 'url') {
+        if ($tmp['type'] == 'url') {
             $url        = env('APP_URL') . $tmp['url'];
             $tmp['url'] = $url;
         }
 
-        $this->campos[] = $tmp;
+        $this->fields[] = $tmp;
     }
 
     protected function render($params)
     {
-        $this->modelo     = $params['modelo'];
-        $this->titulo     = $params['titulo'];
+        $this->model      = $params['model'];
+        $this->title      = $params['title'];
         $this->breadcrumb = $params['breadcrumb'];
         $this->url        = $params['url'];
         $this->filesystem = (isset($params['filesystem']) ? $params['filesystem'] : 'public');
-        $this->botones    = (isset($params['botones']) ? $params['botones'] : []);
-        $this->relaciones = (isset($params['relaciones']) ? $params['relaciones'] : []);
+        $this->buttons    = (isset($params['buttons']) ? $params['buttons'] : []);
+        $this->relations  = (isset($params['relations']) ? $params['relations'] : []);
 
-        foreach ($params['campos'] as $campo) {
-            $this->set_campo($campo);
+        foreach ($params['fields'] as $campo) {
+            $this->set_field($campo);
         }
 
-        $campos         = collect($this->campos);
-        $this->columnas = $campos->filter(function ($campos) {
-            return $campos['editable'];
+        $fields        = collect($this->fields);
+        $this->columns = $fields->filter(function ($fields) {
+            return $fields['editable'];
         })
-            ->pluck('columna')
+            ->pluck('column')
             ->toArray();
     }
 
     // === funciones del crud
     protected function index(Request $request)
     {
-        $datos = $this->modelo::query();
+        $data = $this->model::query();
 
-        if (!empty($this->relaciones)) {
-            $datos->with($this->relaciones);
+        if (!empty($this->relations)) {
+            $data->with($this->relations);
         }
 
-        $datos = $datos->get();
+        $data = $data->get();
 
-        $campos_visibles = collect($this->campos)->filter(function ($campo) {
-            return $campo['visible'];
+        $visible_fields = collect($this->fields)->filter(function ($field) {
+            return $field['visible'];
         })
             ->toArray();
 
         return view('bonsaicrud::component')
             ->with('component', 'crud-index')
-            ->with('titulo', $this->titulo)
+            ->with('title', $this->title)
             ->with('breadcrumb', $this->breadcrumb)
             ->with('params', [
-                'campos'  => $campos_visibles,
-                'datos'   => $datos,
-                'botones' => $this->botones,
+                'fields'  => $visible_fields,
+                'data'    => $data,
+                'buttons' => $this->buttons,
                 'url'     => $this->url,
             ]);
     }
@@ -106,7 +115,7 @@ class CrudController extends Controller
     {
         return view('bonsaicrud::component')
             ->with('component', 'crud-edit')
-            ->with('titulo', $this->titulo)
+            ->with('title', $this->title)
             ->with('breadcrumb', $this->breadcrumb)
             ->with('params', [
                 'id'         => $id,
@@ -117,50 +126,50 @@ class CrudController extends Controller
 
     protected function update(Request $request, $id)
     {
-        $data     = collect($request->dato);
-        $data_set = $data->only($this->columnas)
+        $data     = collect($request->data);
+        $data_set = $data->only($this->columns)
             ->all();
 
-        $relaciones_set = $data->only($this->relaciones)
+        $relation_set = $data->only($this->relations)
             ->all();
 
-        foreach ($relaciones_set as $relacion => $valores) {
-            $campo = collect($this->campos)->filter(function ($campo) use ($relacion) {
-                return isset($campo['relacion']) && $campo['relacion'] == $relacion;
+        foreach ($relation_set as $relation => $values) {
+            $campo = collect($this->fields)->filter(function ($campo) use ($relation) {
+                return isset($campo['relation']) && $campo['relation'] == $relation;
             });
 
             if ($campo) {
                 $campo = $campo->first();
 
-                $data_set[$campo['columna']] = $valores['id'];
+                $data_set[$campo['columna']] = $values['id'];
             }
         }
 
         $final_data = [];
-        foreach ($data_set as $columna => $valor) {
-            if (!$valor) {
-                $valor = 0;
+        foreach ($data_set as $column => $value) {
+            if (!$value) {
+                $value = 0;
             }
 
-            if (is_array($valor)) {
-                $valor = $valor['id'];
+            if (is_array($value)) {
+                $value = $value['id'];
             }
 
-            if ($columna == 'password') {
-                if (strlen($valor) < 20) {
-                    $valor = Hash::make($valor);
+            if ($column == 'password') {
+                if (strlen($value) < 20) {
+                    $value = Hash::make($value);
                 }
             }
 
-            $final_data[$columna] = $valor;
+            $final_data[$column] = $value;
         }
 
         if (isset($data['id'])) {
-            $this->modelo::query()
+            $this->model::query()
                 ->where('id', $data['id'])
                 ->update($final_data);
         } else {
-            $this->modelo::query()
+            $this->model::query()
                 ->create($final_data);
         }
 
@@ -183,7 +192,7 @@ class CrudController extends Controller
 
     protected function destroy($id)
     {
-        $this->modelo::query()
+        $this->model::query()
             ->where('id', $id)
             ->delete();
 
@@ -193,23 +202,23 @@ class CrudController extends Controller
     protected function show($id)
     {
         if ($id == 0) {
-            $dato = [];
-            foreach ($this->columnas as $columna) {
-                $dato[$columna] = '';
+            $data = [];
+            foreach ($this->columns as $column) {
+                $data[$column] = '';
             }
         } else {
-            $dato = $this->modelo::query();
+            $data = $this->model::query();
 
-            if (!empty($this->relaciones)) {
-                $dato->with($this->relaciones);
+            if (!empty($this->relations)) {
+                $data->with($this->relations);
             }
 
-            $dato = $dato->findOrFail($id);
+            $data = $data->findOrFail($id);
         }
 
         return response()->json([
-            'campos' => $this->campos,
-            'dato'   => $dato,
+            'fields' => $this->fields,
+            'data'   => $data,
         ]);
     }
 }

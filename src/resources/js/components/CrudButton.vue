@@ -1,20 +1,15 @@
 <template>
-    <a
-        :href="fullUrl"
-        type="button"
-        :class="`btn btn-sm btn-` + boton.tipo"
-        :target="boton.target"
-    >
-        <i :class="boton.icono"></i>
+    <a :href="fullUrl" type="button" :class="`btn btn-sm btn-` + button.type" :target="button.target">
+        <i :class="button.icono"></i>
     </a>
 </template>
 
 <script>
 export default {
-    props: ["boton", "fila"],
+    props: ["button", "row"],
     computed: {
         fullUrl() {
-            return this.boton.url.replace("{id}", this.fila.id);
+            return this.button.url.replace("{id}", this.row.id);
         },
     },
 };
