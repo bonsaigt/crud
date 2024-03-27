@@ -5,7 +5,7 @@
             <div class="card-body">
                 <div class="mb-3" v-for="field in fields" :key="field.id">
                     <template v-if="field.editable">
-                        <crud-field :field="field" :data="data" :url="url" :static_url="static_url" />
+                        <crud-field :field="field" :data="data" :url="url" :static_url="static_url" :validationErrors="validationErrors" />
                     </template>
                 </div>
             </div>
@@ -20,7 +20,10 @@
 </template>
 
 <script>
+import { errorsMixin } from "../../../mixins/errors.js";
+
 export default {
+    mixins: [errorsMixin],
     props: ["id", "url", "static_url"],
     mounted() {
         axios
@@ -31,7 +34,7 @@ export default {
                 this.cargando = false;
             })
             .catch((error) => {
-                // this.handleError(error);
+                this.handleError(error);
             });
     },
     data() {
@@ -39,6 +42,7 @@ export default {
             cargando: true,
             fields: [],
             data: [],
+            validationErrors: null,
         };
     },
     methods: {
@@ -51,10 +55,10 @@ export default {
                     data: this.data,
                 })
                 .then((response) => {
-                    window.location = this.url;
+                    // window.location = this.url;
                 })
                 .catch((error) => {
-                    // this.handleError(error);
+                    this.handleError(error);
                 });
         },
     },

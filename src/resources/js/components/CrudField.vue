@@ -4,14 +4,14 @@
             <label class="form-label">{{ field.title }}</label>
             <textarea
                 v-if="field.type == 'textarea'"
-                class="form-control"
+                :class="errorClass(field.column)"
                 rows="5"
                 v-model="data[field.column]"
             ></textarea>
-            <input v-else-if="field.type == 'date'" class="form-control" type="date" v-model="data[field.column]" />
+            <input v-else-if="field.type == 'date'" :class="errorClass(field.column)" type="date" v-model="data[field.column]" />
             <input
                 v-else-if="field.type == 'datetime'"
-                class="form-control"
+                :class="errorClass(field.column)"
                 type="datetime-local"
                 v-model="data[field.column]"
             />
@@ -45,29 +45,38 @@
                     </div>
                 </div>
             </div>
-            <input v-else-if="field.type == 'number'" class="form-control" type="number" v-model="data[field.column]" />
+            <input v-else-if="field.type == 'number'" :class="errorClass(field.column)" type="number" v-model="data[field.column]" />
             <input
                 v-else-if="field.type == 'password'"
-                class="form-control"
+                :class="errorClass(field.column)"
                 type="password"
                 v-model="data[field.column]"
             />
-            <input type="text" class="form-control" v-model="data[field.column]" v-else />
+            <input type="text" :class="errorClass(field.column)" v-model="data[field.column]" v-else />
         </template>
         <div class="form-check" v-else>
             <input type="checkbox" class="form-check-input" :id="field.id" v-model="data[field.column]" />
             <label class="form-check-label" :for="field.id">{{ field.title }}</label>
         </div>
+
+        <small
+            class="text-danger"
+            v-if="validationErrors && validationErrors[field.column]"
+        >
+            {{ validationErrors[field.column][0] }}
+        </small>
     </div>
 </template>
 
 <script>
+import { errorsMixin } from "../../../mixins/errors.js";
 import Multiselect from "vue-multiselect";
 import vue2Dropzone from "vue2-dropzone";
 import "vue2-dropzone/dist/vue2Dropzone.min.css";
 
 export default {
-    props: ["field", "data", "url", "static_url"],
+    mixins: [errorsMixin],
+    props: ["field", "data", "url", "static_url", "validationErrors"],
     data() {
         return {
             dropzoneOptions: {

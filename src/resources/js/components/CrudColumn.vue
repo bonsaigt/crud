@@ -10,7 +10,7 @@
         {{ row[field.relacion] ? row[field.relacion]["nombre"] : row[field.column] }}
     </td>
     <td v-else-if="field.type == 'url'">
-        <a :href="full_url" target="_blank">{{ full_url }}</a>
+        <a v-if="row['url']" :href="row['url']" target="_blank">{{ field['tag'] ? field['tag'] : row['url'] }}</a>
     </td>
     <td v-else-if="field.type == 'datetime'">
         {{ row[field.column] | datetime }}
@@ -26,14 +26,5 @@
 <script>
 export default {
     props: ["row", "field"],
-    computed: {
-        full_url() {
-            if (this.field.type == "url") {
-                return this.field["url"] + this.row[this.field.column];
-            }
-
-            return "";
-        },
-    },
 };
 </script>

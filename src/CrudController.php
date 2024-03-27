@@ -7,16 +7,8 @@ use Illuminate\Support\Facades\Hash;
 
 class CrudController extends Controller
 {
-    // protected $campos     = [];
-    // protected $modelo     = null;
-    // protected $titulo     = '';
-    // protected $columnas   = [];
-    // protected $breadcrumb = [];
-    // protected $url        = '';
-    // protected $relaciones = [];
-    // protected $filesystem = 'null';
-    // protected $botones    = [];
     protected $fields     = [];
+    protected $rules      = [];
     protected $model      = null;
     protected $title      = '';
     protected $columns    = [];
@@ -25,6 +17,7 @@ class CrudController extends Controller
     protected $relations  = [];
     protected $filesystem = 'null';
     protected $buttons    = [];
+    protected $perpage    = 10;
 
     private function set_field($array)
     {
@@ -49,7 +42,12 @@ class CrudController extends Controller
         }
 
         if ($tmp['type'] == 'url') {
-            $url        = env('APP_URL') . $tmp['url'];
+            if (isset($array['absolute']) && $array['absolute']) {
+                $url = $tmp['column'];
+            } else {
+                $url = env('APP_URL') . $tmp['column'];
+            }
+
             $tmp['url'] = $url;
         }
 
@@ -65,6 +63,8 @@ class CrudController extends Controller
         $this->filesystem = (isset($params['filesystem']) ? $params['filesystem'] : 'public');
         $this->buttons    = (isset($params['buttons']) ? $params['buttons'] : []);
         $this->relations  = (isset($params['relations']) ? $params['relations'] : []);
+        $this->perpage    = (isset($params['perpage']) ? $params['perpage'] : 10);
+        $this->rules      = (isset($params['rules']) ? $params['rules'] : []);
 
         foreach ($params['fields'] as $campo) {
             $this->set_field($campo);
@@ -81,28 +81,12 @@ class CrudController extends Controller
     // === funciones del crud
     protected function index(Request $request)
     {
-        $data = $this->model::query();
-
-        if (!empty($this->relations)) {
-            $data->with($this->relations);
-        }
-
-        $data = $data->get();
-
-        $visible_fields = collect($this->fields)->filter(function ($field) {
-            return $field['visible'];
-        })
-            ->toArray();
-
         return view('bonsaicrud::component')
             ->with('component', 'crud-index')
             ->with('title', $this->title)
             ->with('breadcrumb', $this->breadcrumb)
             ->with('params', [
-                'fields'  => $visible_fields,
-                'data'    => $data,
-                'buttons' => $this->buttons,
-                'url'     => $this->url,
+                'url' => $this->url,
             ]);
     }
 
@@ -126,6 +110,10 @@ class CrudController extends Controller
 
     protected function update(Request $request, $id)
     {
+        if (count($this->rules) > 0) {
+            $request->validate($this->rules);
+        }
+
         $data     = collect($request->data);
         $data_set = $data->only($this->columns)
             ->all();
@@ -206,6 +194,26 @@ class CrudController extends Controller
             foreach ($this->columns as $column) {
                 $data[$column] = '';
             }
+        } elseif ($id == 'data') {
+            $data = $this->model::query();
+
+            if (!empty($this->relations)) {
+                $data->with($this->relations);
+            }
+
+            $data = $data->paginate($this->perpage);
+
+            $visible_fields = collect($this->fields)->filter(function ($field) {
+                return $field['visible'];
+            })
+                ->toArray();
+
+            return response()->json([
+                'fields'  => $visible_fields,
+                'data'    => $data,
+                'buttons' => $this->buttons,
+                'url'     => $this->url,
+            ]);
         } else {
             $data = $this->model::query();
 
